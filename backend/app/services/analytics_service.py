@@ -1,6 +1,18 @@
+from functools import lru_cache
+
 import pandas as pd
 
-from app.core.config import PCI_PATH
+from app.core.config import (
+    PCI_PATH
+)
+
+
+@lru_cache(maxsize=1)
+def load_pci():
+
+    return pd.read_pickle(
+        PCI_PATH
+    )
 
 
 class AnalyticsService:
@@ -8,11 +20,9 @@ class AnalyticsService:
     @staticmethod
     def get_top_roads(
         top_n: int = 20,
-    ):
+    ) -> list[dict]:
 
-        df = pd.read_pickle(
-            PCI_PATH
-        )
+        df = load_pci()
 
         roads = (
             df.groupby(
@@ -30,14 +40,19 @@ class AnalyticsService:
             .reset_index()
         )
 
+        roads["avg_pci"] = (
+            roads["avg_pci"]
+            .round(3)
+        )
+
         return roads.to_dict(
             orient="records"
         )
-    
-    @staticmethod
-    def get_pci_trend():
 
-        df = pd.read_pickle(PCI_PATH)
+    @staticmethod
+    def get_pci_trend() -> list[dict]:
+
+        df = load_pci()
 
         trend = (
             df.groupby("hour")
@@ -55,5 +70,5 @@ class AnalyticsService:
         )
 
         return trend.to_dict(
-        orient="records"
-    )
+            orient="records"
+        )

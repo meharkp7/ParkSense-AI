@@ -1,7 +1,7 @@
 class PredictionService:
 
     @staticmethod
-    def get_predictions():
+    def get_predictions() -> list[dict]:
 
         return [
             {
@@ -11,7 +11,6 @@ class PredictionService:
                 "recommended_action":
                     "Deploy 2 tow vehicles",
             },
-
             {
                 "location": "Majestic",
                 "predicted_pci": 0.85,
@@ -19,7 +18,6 @@ class PredictionService:
                 "recommended_action":
                     "Increase enforcement patrol",
             },
-
             {
                 "location": "Koramangala",
                 "predicted_pci": 0.68,
