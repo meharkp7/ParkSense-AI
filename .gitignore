@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data
+backend/data/raw/
+backend/data/processed/*.pkl
+backend/data/processed/*.parquet
+
+# Logs
+*.log
+
+# Node
+frontend/node_modules/
+node_modules/
+
+# Environment
+.env
