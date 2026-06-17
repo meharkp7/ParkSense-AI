@@ -1,8 +1,7 @@
 export interface Hotspot {
-  id: number;
-  lat: number;
-  lon: number;
-  pci: number;
+  hotspot_id: number;
   violations: number;
-  location: string;
+  mean_lat: number;
+  mean_lon: number;
+  unique_locations: number;
 }
