@@ -57,6 +57,8 @@ from app.api.v1.forecast import (
     router as forecast_router,
 )
 
+from app.core.config import CORS_ORIGINS
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("🚀 ParkSense AI API started")
@@ -73,7 +75,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=["https://park-sense-ai-beta.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
