@@ -8,4 +8,3 @@ xgboost
 loguru
 rapidfuzz
 twilio
-soupsieve

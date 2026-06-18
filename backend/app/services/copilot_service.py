@@ -1,9 +1,7 @@
 import pandas as pd
 from rapidfuzz import process
-from soupsieve import match
 
 from app.core.config import PCI_PATH
-
 
 class CopilotService:
 
