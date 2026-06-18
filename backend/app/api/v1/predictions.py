@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter
 
 from app.schemas.prediction import (
@@ -13,8 +15,13 @@ router = APIRouter()
 
 @router.get(
     "/predictions",
-    response_model=list[PredictionResponse],
+    response_model=List[
+        PredictionResponse
+    ],
 )
 def get_predictions():
 
-    return PredictionService.get_predictions()
+    return (
+        PredictionService
+        .get_predictions()
+    )
