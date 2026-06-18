@@ -5,10 +5,10 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY backend/requirements-prod.txt ./requirements-prod.txt
+COPY requirements-prod.txt ./requirements-prod.txt
 RUN pip install --no-cache-dir -r requirements-prod.txt
 
-COPY backend /app
+COPY . /app
 
 EXPOSE 8000
 
