@@ -6,3 +6,5 @@ numpy
 scikit-learn
 xgboost
 loguru
+rapidfuzz
+twilio
