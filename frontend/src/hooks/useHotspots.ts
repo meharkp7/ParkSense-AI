@@ -1,17 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "@/services/api/client";
-import type { Hotspot } from "@/types/hotspot";
 
 export function useHotspots() {
-  return useQuery<Hotspot[]>({
-    queryKey: ["hotspots"],
+  return useQuery({
+  queryKey: ["hotspots"],
 
-    queryFn: async () => {
-      const response = await api.get("/hotspots");
-      return response.data;
-    },
+  queryFn: async () => {
+    const res =
+      await api.get(
+        "/hotspots"
+      );
 
-    staleTime: 1000 * 60 * 5,
-  });
+    return res.data;
+  },
+
+  refetchInterval:
+    30000,
+
+  staleTime: 10000,
+});
 }

@@ -3,127 +3,290 @@ import {
   TileLayer,
   CircleMarker,
   Popup,
+  useMap,
 } from "react-leaflet";
 
-import { useHotspots } from "@/hooks/useHotspots";
+import MarkerClusterGroup from "react-leaflet-cluster";
 
-export default function MapView() {
+import { useEffect } from "react";
+
+import L from "@/lib/leafletHeat";
+
+import { useHotspots } from "@/hooks/useHotspots";
+import { useLocation } from "@/context/LocationContext";
+
+interface MapViewProps {
+  search: string;
+  severity: string;
+}
+
+function Heatmap({
+  data,
+}: {
+  data: any[];
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!data?.length) return;
+
+    const points = data.map(
+      (spot: any) => [
+        spot.mean_lat,
+        spot.mean_lon,
+        Math.min(
+          spot.violations /
+            50000,
+          1
+        ),
+      ]
+    );
+
+    const heatLayer = (
+      L as any
+    ).heatLayer(points, {
+      radius: 35,
+      blur: 25,
+      maxZoom: 17,
+    });
+
+    heatLayer.addTo(map);
+
+    return () => {
+      map.removeLayer(
+        heatLayer
+      );
+    };
+  }, [map, data]);
+
+  return null;
+}
+
+export default function MapView({
+  search,
+  severity,
+}: MapViewProps) {
   const {
     data: hotspots,
     isLoading,
     isError,
   } = useHotspots();
 
+  const {
+    setSelectedLocation,
+  } = useLocation();
+
   if (isLoading) {
     return (
-      <div className="h-[600px] animate-pulse rounded-2xl bg-slate-100" />
+      <div className="h-[700px] animate-pulse rounded-2xl bg-slate-100" />
     );
   }
 
   if (isError || !hotspots) {
     return (
       <div className="rounded-xl bg-red-50 p-4 text-red-600">
-        Failed to load hotspot data.
+        Failed to load hotspots.
       </div>
     );
   }
 
+  const filteredHotspots =
+    hotspots.filter((spot: any) => {
+      const matchesSearch =
+        spot.hotspot_id
+          .toString()
+          .includes(search);
+
+      let matchesSeverity = true;
+
+      if (severity === "critical") {
+        matchesSeverity =
+          spot.violations > 20000;
+      }
+
+      if (severity === "medium") {
+        matchesSeverity =
+          spot.violations > 10000 &&
+          spot.violations <= 20000;
+      }
+
+      if (severity === "low") {
+        matchesSeverity =
+          spot.violations <= 10000;
+      }
+
+      return (
+        matchesSearch &&
+        matchesSeverity
+      );
+    });
+
   return (
     <div
       className="
-        rounded-2xl
+        rounded-3xl
         border border-slate-200
-        bg-white/75
+        bg-white/80
         backdrop-blur-md
         p-4
         shadow-sm
       "
     >
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-slate-800">
-          Bengaluru Parking Intelligence Map
-        </h2>
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">
+            Bengaluru Congestion Map
+          </h2>
 
-        <p className="text-sm text-slate-500">
-          Live hotspot monitoring and congestion analytics
-        </p>
+          <p className="text-sm text-slate-500">
+            Real-time hotspot monitoring
+          </p>
+        </div>
+
+        <div className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+          ● LIVE
+        </div>
       </div>
 
-      <div className="h-[600px] overflow-hidden rounded-xl">
+      <div className="h-[700px] overflow-hidden rounded-2xl">
         <MapContainer
           center={[12.9716, 77.5946]}
           zoom={12}
-          scrollWheelZoom={true}
-          className="h-full w-full z-0"
+          scrollWheelZoom
+          className="h-full w-full"
         >
           <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
+            attribution="OpenStreetMap"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {hotspots.map((spot) => {
-            const radius = Math.min(
-              25,
-              Math.max(
-                8,
-                Math.log10(spot.violations) * 5
-              )
-            );
+          <Heatmap
+            data={
+              filteredHotspots
+            }
+          />
 
-            const color =
-              spot.violations > 20000
-                ? "#DC2626"
-                : spot.violations > 10000
-                ? "#F59E0B"
-                : "#16A34A";
+          <MarkerClusterGroup
+            chunkedLoading
+            spiderfyOnMaxZoom
+            showCoverageOnHover={
+              false
+            }
+          >
+            {filteredHotspots.map(
+              (spot: any) => {
+                const color =
+                  spot.violations > 20000
+                    ? "#DC2626"
+                    : spot.violations >
+                      10000
+                    ? "#F59E0B"
+                    : "#16A34A";
 
-            return (
-              <CircleMarker
-                key={spot.hotspot_id}
-                center={[
-                  spot.mean_lat,
-                  spot.mean_lon,
-                ]}
-                radius={radius}
-                pathOptions={{
-                  color,
-                  fillColor: color,
-                  fillOpacity: 0.6,
-                  weight: 2,
-                }}
-              >
-                <Popup>
-                  <div className="space-y-2 min-w-[200px]">
-                    <h3 className="font-bold text-slate-800">
-                      Hotspot #{spot.hotspot_id}
-                    </h3>
+                const radius =
+                  spot.violations >
+                  50000
+                    ? 20
+                    : spot.violations >
+                      20000
+                    ? 16
+                    : 12;
 
-                    <div className="text-sm text-slate-600">
-                      <p>
-                        <strong>Violations:</strong>{" "}
-                        {spot.violations.toLocaleString()}
+                return (
+                  <CircleMarker
+                    key={
+                      spot.hotspot_id
+                    }
+                    center={[
+                      spot.mean_lat,
+                      spot.mean_lon,
+                    ]}
+                    radius={radius}
+                    pathOptions={{
+                      color,
+                      fillColor:
+                        color,
+                      fillOpacity: 0.7,
+                      weight: 2,
+                    }}
+                    eventHandlers={{
+                      click: () => {
+                        if (
+                          spot.top_location
+                        ) {
+                          setSelectedLocation(
+                            spot.top_location
+                          );
+                        }
+                      },
+                    }}
+                  >
+                    <Popup>
+                      <div className="min-w-[220px] space-y-3">
+                        <h3 className="text-lg font-bold text-slate-900">
+                          Hotspot #
+                          {
+                            spot.hotspot_id
+                          }
+                        </h3>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-lg bg-slate-100 p-2">
+                            <p className="text-xs text-slate-500">
+                              Violations
+                            </p>
+
+                            <p className="font-bold text-slate-900">
+                              {spot.violations.toLocaleString()}
+                            </p>
+                          </div>
+
+                          <div className="rounded-lg bg-slate-100 p-2">
+                            <p className="text-xs text-slate-500">
+                              Roads
+                            </p>
+
+                            <p className="font-bold text-slate-900">
+                              {
+                                spot.unique_locations
+                              }
+                            </p>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`
+                            rounded-full px-3 py-1 text-center text-sm font-semibold
+                            ${
+                              spot.violations >
+                              20000
+                                ? "bg-red-100 text-red-700"
+                                : spot.violations >
+                                  10000
+                                ? "bg-orange-100 text-orange-700"
+                                : "bg-green-100 text-green-700"
+                            }
+                          `}
+                        >
+                          {spot.violations >
+                          20000
+                            ? "CRITICAL"
+                            : spot.violations >
+                              10000
+                            ? "MEDIUM"
+                            : "LOW"}
+                        </div>
+                      </div>
+                      <p className="text-sm text-slate-600">
+                        {spot.top_location}
                       </p>
-
-                      <p>
-                        <strong>Unique Roads:</strong>{" "}
-                        {spot.unique_locations}
-                      </p>
-
-                      <p>
-                        <strong>Latitude:</strong>{" "}
-                        {spot.mean_lat.toFixed(4)}
-                      </p>
-
-                      <p>
-                        <strong>Longitude:</strong>{" "}
-                        {spot.mean_lon.toFixed(4)}
-                      </p>
-                    </div>
-                  </div>
-                </Popup>
-              </CircleMarker>
-            );
-          })}
+                    </Popup>
+                  </CircleMarker>
+                );
+              }
+            )}
+          </MarkerClusterGroup>
         </MapContainer>
       </div>
     </div>
