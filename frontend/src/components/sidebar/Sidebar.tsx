@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Map,
   ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -27,6 +28,11 @@ const links = [
     label: "Enforcement",
     icon: ShieldCheck,
     path: "/enforcement",
+  },
+  {
+    label: "Analytics",
+    icon: BarChart3,
+    path: "/analytics",
   },
 ];
 

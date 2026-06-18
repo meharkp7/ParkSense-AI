@@ -10,14 +10,22 @@ import { router } from "@/app/router";
 import { queryClient } from "@/lib/queryClient";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
+import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
+import {
+  LocationProvider,
+} from "@/context/LocationContext";
+
 ReactDOM.createRoot(
   document.getElementById("root")!
 ).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <RouterProvider router={router} />
-      </TooltipProvider>
+      <LocationProvider>
+        <TooltipProvider>
+          <RouterProvider router={router} />
+        </TooltipProvider>
+      </LocationProvider>
     </QueryClientProvider>
   </React.StrictMode>
 );

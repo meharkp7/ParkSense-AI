@@ -4,6 +4,7 @@ import Dashboard from "@/pages/Dashboard";
 import LiveMap from "@/pages/LiveMap";
 import Predictions from "@/pages/Predictions";
 import Enforcement from "@/pages/Enforcement";
+import Analytics from "@/pages/Analytics";
 
 export const router = createBrowserRouter([
   {
@@ -21,5 +22,9 @@ export const router = createBrowserRouter([
   {
     path: "/enforcement",
     element: <Enforcement />,
+  },
+  {
+    path: "/analytics",
+    element: <Analytics />,
   },
 ]);
