@@ -25,7 +25,7 @@ export default function KPICard({
         border border-slate-200
         bg-white/75
         backdrop-blur-md
-        p-6
+        p-3
         shadow-sm
       "
     >
