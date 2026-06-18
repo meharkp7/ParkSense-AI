@@ -1,22 +1,29 @@
-# Python
-.venv/
-*__pycache__/
-*.pyc
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Data
-backend/data/raw/
-backend/data/processed/*.pkl
-backend/data/processed/*.parquet
-
-# Logs
-*.log
-
-# Node
-frontend/node_modules/
-node_modules/
-
-# Environment
+.DS_Store
 .env
+backend/.env
+frontend/.env
+backend/.venv/
+backend/__pycache__/
+backend/app/**/__pycache__/
+frontend/node_modules/
+frontend/dist/
+backend.log
+frontend.log
+.vscode/
+node_modules/
+dist/
+*.log
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.env
+*.env.local
+*.env.development
+*.env.test
+*.env.production
+*.DS_Store
+.idea/
+*.csv

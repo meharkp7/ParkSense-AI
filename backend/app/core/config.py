@@ -36,3 +36,12 @@ MSG91_COUNTRY = os.getenv("MSG91_COUNTRY", "91")
 FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY", "")
 FAST2SMS_ROUTE = os.getenv("FAST2SMS_ROUTE", "q")
 FAST2SMS_SENDER_ID = os.getenv("FAST2SMS_SENDER_ID", "")
+
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "PARKSENSE_CORS_ORIGINS",
+        "http://localhost:5173,http://localhost:5174,http://localhost:8080",
+    ).split(",")
+    if origin.strip()
+]
