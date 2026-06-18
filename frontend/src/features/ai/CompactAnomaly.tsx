@@ -4,11 +4,16 @@ import { api } from "@/services/api/client";
 
 export default function CompactAnomaly() {
   const { data } = useQuery({
-    queryKey: ["anomalies"],
+    queryKey: ["compact-anomalies"],
     queryFn: async () => {
-      const res = await api.get("/anomaly/detect");
+      const res = await api.get(
+        "/anomalies"
+      );
+
       return res.data.slice(0, 4);
     },
+
+    refetchInterval: 120000,
   });
 
   return (
@@ -30,9 +35,9 @@ export default function CompactAnomaly() {
             className={`
               rounded-md border p-3
               ${
-                anomaly.severity === "HIGH"
+                anomaly.increase >= 100
                   ? "border-red-200 bg-red-50"
-                  : anomaly.severity === "MEDIUM"
+                  : anomaly.increase >= 50
                   ? "border-orange-200 bg-orange-50"
                   : "border-yellow-200 bg-yellow-50"
               }
@@ -45,12 +50,24 @@ export default function CompactAnomaly() {
                   <p className="text-sm font-bold text-slate-900">{anomaly.location}</p>
                   <span className={`
                     rounded-full px-2 py-0.5 text-xs font-bold
-                    ${anomaly.severity === "HIGH" ? "bg-red-600 text-white" : "bg-orange-600 text-white"}
+                    ${
+                      anomaly.increase >= 100
+                        ? "bg-red-600 text-white"
+                        : anomaly.increase >= 50
+                        ? "bg-orange-600 text-white"
+                        : "bg-yellow-600 text-white"
+                    }
                   `}>
-                    {anomaly.severity}
+                    {
+                      anomaly.increase >= 100
+                        ? "HIGH"
+                        : anomaly.increase >= 50
+                        ? "MEDIUM"
+                        : "LOW"
+                    }
                   </span>
                 </div>
-                <p className="text-xs text-slate-700 mb-1">{anomaly.reason}</p>
+                <p className="text-xs text-slate-700 mb-1">{anomaly.message}</p>
                 <div className="flex items-center gap-3 text-xs text-slate-600">
                   <span>📊 Z-Score: {anomaly.z_score}</span>
                   <span>🚗 {anomaly.violations} violations</span>
