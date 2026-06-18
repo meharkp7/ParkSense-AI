@@ -8,11 +8,12 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 import random
 
-from app.core.config import ALLOW_SIMULATION_PROVIDERS
+from app.core.config import ALLOW_SIMULATION_PROVIDERS, TWILIO_CALL_FROM
 from app.services.sms_service import sms_service
 from app.services.sms_service import SMSServiceError
 from app.services.telephony_service import telephony_service
 from app.services.telephony_service import TelephonyServiceError
+from dotenv import load_dotenv
 
 router = APIRouter()
 
@@ -59,8 +60,8 @@ async def get_alert_queue():
                 "status": random.choice(["NEW", "ACKNOWLEDGED", "OFFICER_ASSIGNED", "RESOLVED"]),
                 "officer": random.choice([None, "Officer Kumar", "Officer Sharma", "Officer Patel"]),
                 "notes": None,
-                "phone_number": f"+91-98{random.randint(10000000, 99999999)}",
-                "officer_phone_number": f"+91-99{random.randint(10000000, 99999999)}",
+                "phone_number": "+918527673357",
+                "officer_phone_number": "+918527673357",
                 "sms_sent_at": None,
                 "call_status": None,
             })
