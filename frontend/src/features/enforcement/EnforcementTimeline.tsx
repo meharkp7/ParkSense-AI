@@ -9,7 +9,7 @@ export default function EnforcementTimeline() {
       const res = await api.get("/enforcement/timeline");
       return res.data;
     },
-    refetchInterval: 10000,
+    refetchInterval: 120000,
   });
 
   const getIcon = (action: string) => {

@@ -5,8 +5,8 @@ Predicts congestion for next 1hr, 3hr, 6hr, tomorrow
 from fastapi import APIRouter
 from datetime import datetime, timedelta
 import random
-import pandas as pd
-from app.core.config import PCI_PATH
+
+from app.core.data_loader import load_pci
 
 router = APIRouter()
 
@@ -20,7 +20,7 @@ async def get_forecast_timeline():
     
     # Load actual data
     try:
-        df = pd.read_pickle(PCI_PATH)
+        df = load_pci()
         current_hour = current_time.hour
         
         # Get average PCI for different time windows

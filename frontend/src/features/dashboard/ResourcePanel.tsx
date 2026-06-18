@@ -15,7 +15,7 @@ export default function ResourcePanel() {
     },
 
     refetchInterval:
-      30000,
+      120000,
   });
 
   if (!data) return null;

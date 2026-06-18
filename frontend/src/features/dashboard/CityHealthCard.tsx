@@ -13,7 +13,7 @@ export default function CityHealthCard() {
       return res.data;
     },
 
-    refetchInterval: 30000,
+    refetchInterval: 120000,
   });
 
   if (!data) return null;

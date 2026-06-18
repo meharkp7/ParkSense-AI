@@ -1,6 +1,4 @@
-import pandas as pd
-
-from app.core.config import PCI_PATH
+from app.core.data_loader import load_pci
 
 
 class AnomalyService:
@@ -8,9 +6,7 @@ class AnomalyService:
     @staticmethod
     def get_anomalies():
 
-        df = pd.read_pickle(
-            PCI_PATH
-        )
+        df = load_pci()
 
         grouped = (
             df.groupby(

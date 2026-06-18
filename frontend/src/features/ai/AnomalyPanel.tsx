@@ -19,7 +19,7 @@ export default function AnomalyPanel() {
     },
 
     refetchInterval:
-      30000,
+      120000,
   });
 
   if (isLoading) {

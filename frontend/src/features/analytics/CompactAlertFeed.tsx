@@ -9,7 +9,7 @@ export default function CompactAlertFeed() {
       const res = await api.get("/alerts");
       return res.data.slice(0, 5); // Only show top 5
     },
-    refetchInterval: 10000,
+    refetchInterval: 120000,
   });
 
   return (

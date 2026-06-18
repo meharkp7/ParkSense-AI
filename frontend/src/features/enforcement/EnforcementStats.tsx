@@ -9,7 +9,7 @@ export default function EnforcementStats() {
       const res = await api.get("/enforcement/stats");
       return res.data;
     },
-    refetchInterval: 10000,
+    refetchInterval: 120000,
   });
 
   const stats = [

@@ -30,7 +30,7 @@ export default function RecentIncidents() {
       const res = await api.get("/enforcement/timeline");
       return res.data.slice(0, 8); // Show recent 8 events
     },
-    refetchInterval: 10000,
+    refetchInterval: 120000,
   });
 
   const activityFeed = timeline?.length ? timeline.slice(0, 5) : fallbackTimeline;

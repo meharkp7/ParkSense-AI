@@ -1,16 +1,13 @@
-import pandas as pd
 from rapidfuzz import process
 
-from app.core.config import PCI_PATH
+from app.core.data_loader import load_pci
 
 class CopilotService:
 
     @staticmethod
     def answer(question: str):
 
-        df = pd.read_pickle(
-            PCI_PATH
-        )
+        df = load_pci()
 
         question = (
             question.lower()

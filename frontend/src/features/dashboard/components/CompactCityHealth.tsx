@@ -9,7 +9,7 @@ export default function CompactCityHealth() {
       const res = await api.get("/city-health");
       return res.data;
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
   });
 
   if (!data) return null;

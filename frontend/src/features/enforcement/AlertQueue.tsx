@@ -33,7 +33,7 @@ export default function AlertQueue() {
       const res = await api.get("/alerts/queue");
       return res.data;
     },
-    refetchInterval: 5000,
+    refetchInterval: 120000,
   });
 
   const acknowledgeMutation = useMutation({

@@ -13,6 +13,6 @@ export function useInsights() {
       return res.data;
     },
 
-    refetchInterval: 30000,
+    refetchInterval: 120000,
   });
 }

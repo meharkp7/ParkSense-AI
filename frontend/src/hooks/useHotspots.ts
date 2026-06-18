@@ -16,7 +16,7 @@ export function useHotspots() {
   },
 
   refetchInterval:
-    30000,
+    120000,
 
   staleTime: 10000,
 });

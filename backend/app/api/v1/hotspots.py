@@ -1,7 +1,6 @@
 from fastapi import APIRouter
-import pandas as pd
 
-from app.core.config import HOTSPOTS_PATH
+from app.core.data_loader import load_hotspots
 
 router = APIRouter()
 
@@ -9,9 +8,7 @@ router = APIRouter()
 @router.get("/hotspots/top")
 def top_hotspots():
 
-    hotspots = pd.read_pickle(
-        HOTSPOTS_PATH
-    )
+    hotspots = load_hotspots()
 
     hotspots = hotspots.reset_index()
 

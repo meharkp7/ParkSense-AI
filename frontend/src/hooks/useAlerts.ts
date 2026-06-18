@@ -15,6 +15,6 @@ export function useAlerts() {
       return res.data;
     },
 
-    refetchInterval: 30000,
+    refetchInterval: 120000,
   });
 }

@@ -1,17 +1,14 @@
 import random
-import pandas as pd
-
-from app.core.config import HOTSPOT_DF_PATH
 from datetime import datetime
+
+from app.core.data_loader import load_hotspot_df
 
 class AlertService:
 
     @staticmethod
     def get_live_events():
 
-        df = pd.read_pickle(
-            HOTSPOT_DF_PATH
-        )
+        df = load_hotspot_df()
 
         recent = (
             df.groupby("location")

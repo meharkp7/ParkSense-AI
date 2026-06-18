@@ -1,22 +1,10 @@
-from functools import lru_cache
-
-import pandas as pd
-
 from app.core.config import (
-    PCI_PATH,
-    HOTSPOTS_PATH,
     HIGH_RISK_THRESHOLD,
 )
-
-
-@lru_cache(maxsize=1)
-def load_pci_df():
-    return pd.read_pickle(PCI_PATH)
-
-
-@lru_cache(maxsize=1)
-def load_hotspots_df():
-    return pd.read_pickle(HOTSPOTS_PATH)
+from app.core.data_loader import (
+    load_hotspots,
+    load_pci,
+)
 
 
 class DashboardService:
@@ -24,9 +12,9 @@ class DashboardService:
     @staticmethod
     def get_kpis() -> dict:
 
-        df = load_pci_df()
+        df = load_pci()
 
-        hotspots = load_hotspots_df()
+        hotspots = load_hotspots()
 
         return {
             "total_violations": int(len(df)),
