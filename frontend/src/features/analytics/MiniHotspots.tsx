@@ -3,13 +3,29 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/services/api/client";
 
 export default function MiniHotspots() {
-  const { data } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["top-hotspots"],
     queryFn: async () => {
       const res = await api.get("/hotspots");
       return res.data;
     },
   });
+
+  const getSeverity = (violations: number) => {
+    if (violations >= 30000) {
+      return "CRITICAL";
+    }
+
+    if (violations >= 10000) {
+      return "HIGH";
+    }
+
+    return "MEDIUM";
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -24,6 +40,38 @@ export default function MiniHotspots() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Flame className="h-5 w-5 text-red-600" />
+            <h3 className="text-base font-semibold text-slate-700">Active Hotspots</h3>
+          </div>
+        </div>
+        <div className="flex h-[260px] items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-500">
+          Loading hotspots...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Flame className="h-5 w-5 text-red-600" />
+            <h3 className="text-base font-semibold text-slate-700">Active Hotspots</h3>
+          </div>
+        </div>
+        <div className="flex h-[260px] items-center justify-center rounded-lg border border-red-200 bg-red-50 text-sm text-red-600">
+          Hotspot data is unavailable right now.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
@@ -37,13 +85,13 @@ export default function MiniHotspots() {
       <div className="mb-3 grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-red-50 px-3 py-2 text-center">
           <p className="text-lg font-bold text-red-600">
-            {data?.filter((hotspot: any) => hotspot.severity === "CRITICAL").length || 0}
+            {data?.filter((hotspot: any) => getSeverity(hotspot.violations) === "CRITICAL").length || 0}
           </p>
           <p className="text-[11px] text-slate-500">Critical</p>
         </div>
         <div className="rounded-lg bg-orange-50 px-3 py-2 text-center">
           <p className="text-lg font-bold text-orange-600">
-            {data?.filter((hotspot: any) => hotspot.severity === "HIGH").length || 0}
+            {data?.filter((hotspot: any) => getSeverity(hotspot.violations) === "HIGH").length || 0}
           </p>
           <p className="text-[11px] text-slate-500">High</p>
         </div>
@@ -55,7 +103,8 @@ export default function MiniHotspots() {
 
       <div className="space-y-2 max-h-[230px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
         {data?.slice(0, 4).map((hotspot: any, idx: number) => {
-          const colors = getSeverityColor(hotspot.severity);
+          const severity = getSeverity(hotspot.violations);
+          const colors = getSeverityColor(severity);
           return (
             <div
               key={idx}
@@ -65,13 +114,13 @@ export default function MiniHotspots() {
                 #{idx + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-900 truncate">{hotspot.location}</p>
+                <p className="text-sm font-bold text-slate-900 truncate">{hotspot.top_location || `Hotspot #${hotspot.hotspot_id}`}</p>
                 <p className="text-xs text-slate-600">
                   {hotspot.violations} violations • Zone {hotspot.hotspot_id}
                 </p>
               </div>
               <span className={`rounded-full px-3 py-1 text-xs font-bold ${colors.text} bg-white border ${colors.border} flex-shrink-0`}>
-                {hotspot.severity}
+                {severity}
               </span>
             </div>
           );

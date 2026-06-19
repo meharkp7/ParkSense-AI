@@ -1,3 +1,10 @@
+---
+title: ParkSense AI Backend
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 # ParkSense AI
 
 ParkSense AI is a smart city parking intelligence and enforcement platform for monitoring violations, surfacing congestion hotspots, prioritizing enforcement action, and coordinating field operations.

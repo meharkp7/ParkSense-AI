@@ -2,7 +2,11 @@ import { Brain, TrendingUp, AlertTriangle, Lightbulb, Radar } from "lucide-react
 import { useInsights } from "@/hooks/useInsights";
 
 export default function CompactAIInsights() {
-  const { data } = useInsights();
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useInsights();
 
   const iconMap: any = {
     warning: AlertTriangle,
@@ -17,6 +21,44 @@ export default function CompactAIInsights() {
     recommendation: { icon: "text-blue-600", bg: "bg-blue-50", border: "border-blue-300" },
     trend: { icon: "text-green-600", bg: "bg-green-50", border: "border-green-300" },
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-600" />
+            <h3 className="text-base font-semibold text-slate-700">AI Insights</h3>
+          </div>
+          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+            Live Signals
+          </span>
+        </div>
+        <div className="flex h-[240px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500">
+          Loading insights...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-600" />
+            <h3 className="text-base font-semibold text-slate-700">AI Insights</h3>
+          </div>
+          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+            Live Signals
+          </span>
+        </div>
+        <div className="flex h-[240px] items-center justify-center rounded-xl border border-red-200 bg-red-50 text-sm text-red-600">
+          Insight data is unavailable right now.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">

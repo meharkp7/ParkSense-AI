@@ -3,13 +3,19 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/services/api/client";
 
 export default function CompactPrediction() {
-  const { data } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["predictions"],
     queryFn: async () => {
       const res = await api.get("/predictions");
       return res.data;
     },
   });
+
+  const primaryPrediction = data?.[0];
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -25,13 +31,51 @@ export default function CompactPrediction() {
   };
 
   const confidence =
-    data?.risk_level === "CRITICAL"
+    primaryPrediction?.risk === "CRITICAL"
       ? 92
-      : data?.risk_level === "HIGH"
+      : primaryPrediction?.risk === "HIGH"
       ? 81
-      : data?.risk_level === "MEDIUM"
+      : primaryPrediction?.risk === "MEDIUM"
       ? 68
       : 57;
+
+  if (isLoading) {
+    return (
+      <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-purple-600" />
+            <h3 className="text-base font-semibold text-slate-700">AI Predictions</h3>
+          </div>
+          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+            Forecast Engine
+          </span>
+        </div>
+        <div className="flex h-[280px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500">
+          Loading predictions...
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !primaryPrediction) {
+    return (
+      <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-purple-600" />
+            <h3 className="text-base font-semibold text-slate-700">AI Predictions</h3>
+          </div>
+          <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+            Forecast Engine
+          </span>
+        </div>
+        <div className="flex h-[280px] items-center justify-center rounded-xl border border-red-200 bg-red-50 text-sm text-red-600">
+          Prediction data is unavailable right now.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -45,20 +89,20 @@ export default function CompactPrediction() {
         </span>
       </div>
 
-      {data && (
+      {primaryPrediction && (
         <div className="space-y-3">
-          <div className={`rounded-xl border ${getRiskColor(data.risk_level).light} bg-gradient-to-r from-white to-slate-50 p-4 shadow-sm`}>
+          <div className={`rounded-xl border ${getRiskColor(primaryPrediction.risk).light} bg-gradient-to-r from-white to-slate-50 p-4 shadow-sm`}>
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Target className={`h-5 w-5 ${getRiskColor(data.risk_level).text}`} />
+                <Target className={`h-5 w-5 ${getRiskColor(primaryPrediction.risk).text}`} />
                 <span className="text-sm font-semibold text-slate-700">Risk Level</span>
               </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-bold text-white ${getRiskColor(data.risk_level).bg}`}>
-                {data.risk_level}
+              <span className={`rounded-full px-3 py-1 text-xs font-bold text-white ${getRiskColor(primaryPrediction.risk).bg}`}>
+                {primaryPrediction.risk}
               </span>
             </div>
-            <p className="text-xl font-bold text-slate-900 mb-1">{data.location || "KR Market"}</p>
-            <p className="text-sm text-slate-600">{data.reason}</p>
+            <p className="text-xl font-bold text-slate-900 mb-1">{primaryPrediction.display_name || primaryPrediction.location}</p>
+            <p className="text-sm text-slate-600">{primaryPrediction.recommended_action}</p>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-lg bg-white p-3">
@@ -74,7 +118,7 @@ export default function CompactPrediction() {
                   Actionability
                 </div>
                 <p className="text-lg font-bold text-slate-900">
-                  {data.risk_level === "CRITICAL" || data.risk_level === "HIGH" ? "Immediate" : "Monitor"}
+                  {primaryPrediction.risk === "CRITICAL" || primaryPrediction.risk === "HIGH" ? "Immediate" : "Monitor"}
                 </p>
               </div>
             </div>
@@ -87,7 +131,7 @@ export default function CompactPrediction() {
                 <Clock className="h-4 w-4 text-blue-600" />
                 <p className="text-xs font-semibold text-blue-900">Peak Hour</p>
               </div>
-              <p className="text-lg font-bold text-blue-900">{data.peak_hour || "6-8 PM"}</p>
+              <p className="text-lg font-bold text-blue-900">{primaryPrediction.peak_hour || "6-8 PM"}</p>
             </div>
             <div className="rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 p-3 border border-purple-200">
               <div className="flex items-center gap-1 mb-1">
@@ -95,7 +139,7 @@ export default function CompactPrediction() {
                 <p className="text-xs font-semibold text-purple-900">PCI Forecast</p>
               </div>
               <p className="text-lg font-bold text-purple-900">
-                {data.pci_forecast ? `${Math.round(data.pci_forecast * 100)}%` : "72%"}
+                {primaryPrediction.predicted_pci ? `${Math.round(primaryPrediction.predicted_pci * 100)}%` : "72%"}
               </p>
             </div>
           </div>
@@ -105,7 +149,7 @@ export default function CompactPrediction() {
               <Sparkles className="h-3.5 w-3.5" />
               AI Recommendation
             </p>
-            <p className="text-sm text-blue-800 leading-tight">{data.recommendation}</p>
+            <p className="text-sm text-blue-800 leading-tight">{primaryPrediction.recommended_action}</p>
           </div>
         </div>
       )}
