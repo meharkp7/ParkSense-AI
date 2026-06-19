@@ -4,6 +4,7 @@ Predicts congestion for next 1hr, 3hr, 6hr, tomorrow
 """
 from fastapi import APIRouter
 from datetime import datetime, timedelta
+import math
 import random
 
 from app.core.data_loader import load_pci
@@ -18,6 +19,20 @@ async def get_forecast_timeline():
     """
     current_time = datetime.now()
     
+    def to_python_float(value, fallback):
+        try:
+            numeric = float(value)
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return fallback
+
+        if math.isnan(numeric):
+            return fallback
+
+        return numeric
+
     # Load actual data
     try:
         df = load_pci()
@@ -37,6 +52,23 @@ async def get_forecast_timeline():
         next_3hr = random.uniform(0.60, 0.80)
         next_6hr = random.uniform(0.50, 0.70)
         tomorrow_pci = random.uniform(0.55, 0.75)
+
+    next_1hr = to_python_float(
+        next_1hr,
+        0.65,
+    )
+    next_3hr = to_python_float(
+        next_3hr,
+        0.70,
+    )
+    next_6hr = to_python_float(
+        next_6hr,
+        0.60,
+    )
+    tomorrow_pci = to_python_float(
+        tomorrow_pci,
+        0.65,
+    )
     
     def get_risk_level(pci):
         if pci >= 0.80:
@@ -54,7 +86,7 @@ async def get_forecast_timeline():
             {
                 "timeframe": "Next 1 Hour",
                 "time": (current_time + timedelta(hours=1)).strftime("%I:%M %p"),
-                "pci": round(next_1hr, 2),
+                "pci": round(float(next_1hr), 2),
                 "risk": get_risk_level(next_1hr),
                 "expected_violations": int(next_1hr * 150),
                 "recommendation": "Deploy 2 additional units to MG Road area",
@@ -62,7 +94,7 @@ async def get_forecast_timeline():
             {
                 "timeframe": "Next 3 Hours",
                 "time": (current_time + timedelta(hours=3)).strftime("%I:%M %p"),
-                "pci": round(next_3hr, 2),
+                "pci": round(float(next_3hr), 2),
                 "risk": get_risk_level(next_3hr),
                 "expected_violations": int(next_3hr * 180),
                 "recommendation": "Prepare for evening rush hour congestion",
@@ -70,7 +102,7 @@ async def get_forecast_timeline():
             {
                 "timeframe": "Next 6 Hours",
                 "time": (current_time + timedelta(hours=6)).strftime("%I:%M %p"),
-                "pci": round(next_6hr, 2),
+                "pci": round(float(next_6hr), 2),
                 "risk": get_risk_level(next_6hr),
                 "expected_violations": int(next_6hr * 120),
                 "recommendation": "Normal patrol patterns sufficient",
@@ -78,7 +110,7 @@ async def get_forecast_timeline():
             {
                 "timeframe": "Tomorrow Same Time",
                 "time": (current_time + timedelta(days=1)).strftime("%a, %I:%M %p"),
-                "pci": round(tomorrow_pci, 2),
+                "pci": round(float(tomorrow_pci), 2),
                 "risk": get_risk_level(tomorrow_pci),
                 "expected_violations": int(tomorrow_pci * 160),
                 "recommendation": "Plan officer schedules for high-risk zones",
