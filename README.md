@@ -1,83 +1,463 @@
+# 🚦 ParkSense AI
+
+<p align="center">
+  <h3 align="center">Predictive Parking Enforcement & Congestion Intelligence Platform</h3>
+  <p align="center">
+    AI-Powered Smart City Operations for Proactive Congestion Management
+  </p>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React-blue" />
+  <img src="https://img.shields.io/badge/Backend-FastAPI-green" />
+  <img src="https://img.shields.io/badge/ML-XGBoost-orange" />
+  <img src="https://img.shields.io/badge/AI-Groq-purple" />
+  <img src="https://img.shields.io/badge/Status-Production%20Prototype-success" />
+</p>
+
 ---
-title: ParkSense AI Backend
-sdk: docker
-app_port: 8000
-pinned: false
+
+## 🌐 Live Resources
+
+### 🚀 Live Platform
+
+https://park-sense-ai-beta.vercel.app
+
+### 🎥 Video Demonstration
+
+https://youtu.be/rmu534u17yM
+
+### 📑 Presentation Deck
+
+https://canva.link/elpekys10md5d9y
+
 ---
 
-# ParkSense AI
+# 📌 Overview
 
-ParkSense AI is a smart city parking intelligence and enforcement platform for monitoring violations, surfacing congestion hotspots, prioritizing enforcement action, and coordinating field operations.
+ParkSense AI is a smart-city congestion intelligence platform that transforms parking violation data into actionable operational intelligence.
 
-## Deployment Readiness
+Traditional parking enforcement systems are reactive. Violations are addressed only after congestion has already formed, resulting in inefficient resource allocation and delayed intervention.
 
-The project now supports configurable frontend API URLs, backend CORS origins, provider-backed SMS, provider-backed officer calls, Docker builds, and Docker Compose for local production-style smoke testing.
+ParkSense introduces a Parking Congestion Index (PCI), a unified congestion metric that quantifies the impact of illegal parking on traffic flow and urban mobility. The platform combines machine learning, geospatial analytics, forecasting, anomaly detection, enforcement orchestration, and conversational AI into a single operational command center.
 
-### Quick Production Smoke Test
+---
 
-1. Copy `.env.example` to `.env`
-2. Copy `frontend/.env.example` to `frontend/.env` if you want a local frontend override
-3. Fill in your provider credentials
-4. Run:
+# 🎯 Problem Statement
 
-```bash
-docker compose up --build
+Urban congestion is frequently amplified by illegal and unmanaged parking behavior.
+
+Current enforcement systems face several limitations:
+
+* Reactive response after congestion occurs
+* Limited visibility into future congestion risks
+* Inefficient deployment of enforcement resources
+* Lack of geospatial congestion intelligence
+* Fragmented operational workflows
+* Absence of predictive decision support
+
+City authorities require a platform capable of predicting congestion patterns before they escalate and providing actionable enforcement recommendations.
+
+---
+
+# 💡 Solution
+
+ParkSense AI enables proactive congestion management through a unified intelligence layer.
+
+The platform:
+
+* Detects parking congestion hotspots
+* Forecasts future congestion conditions
+* Identifies anomalous traffic patterns
+* Prioritizes incidents using PCI scores
+* Supports officer dispatch decisions
+* Sends SMS and voice notifications
+* Provides AI-powered operational insights
+
+---
+
+# 🏗️ System Architecture
+
+```text
+Parking Violation Data
+            │
+            ▼
+  Parking Congestion Index
+            │
+            ▼
+ ┌─────────────────────────────┐
+ │      Intelligence Layer     │
+ └─────────────────────────────┘
+            │
+ ┌──────────┼──────────┬──────────┐
+ ▼          ▼          ▼          ▼
+
+Forecast   Hotspots  Anomaly   Analytics
+ Engine    Detection Detection  Engine
+
+            │
+            ▼
+   Enforcement Engine
+            │
+ ┌──────────┼──────────┐
+ ▼          ▼          ▼
+
+Dispatch    SMS     Voice Calls
+
+            │
+            ▼
+
+      AI Copilot
+            │
+            ▼
+
+      Command Center
 ```
 
-Frontend will be available at `http://localhost:8080` and backend at `http://localhost:8000`.
+---
 
-## Communications Deployment
+# 🧠 Parking Congestion Index (PCI)
 
-The enforcement workflow now supports provider-backed SMS and call actions.
+The Parking Congestion Index (PCI) serves as the core intelligence metric throughout the platform.
 
-### Environment
+PCI is derived from:
 
-Copy `.env.example` to `.env` and configure at least one SMS provider plus one call provider.
+* Violation Density
+* Hotspot Concentration
+* Road Criticality
+* Temporal Traffic Pressure
 
-### Supported SMS Providers
+Risk Classification:
 
-- `twilio`
-- `msg91`
-- `fast2sms`
+| PCI Range   | Risk Level |
+| ----------- | ---------- |
+| 0 – 0.39    | Low        |
+| 0.40 – 0.59 | Medium     |
+| 0.60 – 0.79 | High       |
+| 0.80 – 1.00 | Critical   |
 
-### Supported Call Providers
+PCI powers forecasting, hotspot analysis, anomaly detection, resource allocation, and enforcement prioritization.
 
-- `twilio`
+---
 
-### Required Variables
+# 🚀 Core Features
 
-For Twilio:
+## 🔮 Congestion Forecasting
 
-- `PARKSENSE_SMS_PROVIDER=twilio`
-- `PARKSENSE_CALL_PROVIDER=twilio`
-- `TWILIO_ACCOUNT_SID`
-- `TWILIO_AUTH_TOKEN`
-- `TWILIO_SMS_FROM`
-- `TWILIO_CALL_FROM`
+Forecast future congestion conditions using machine learning.
 
-For MSG91:
+Capabilities:
 
-- `PARKSENSE_SMS_PROVIDER=msg91`
-- `MSG91_AUTH_KEY`
-- `MSG91_SENDER_ID`
+* Next Hour Forecast
+* 3 Hour Forecast
+* 6 Hour Forecast
+* 24 Hour Forecast
+* Road-Level Predictions
 
-For Fast2SMS:
+Model:
 
-- `PARKSENSE_SMS_PROVIDER=fast2sms`
-- `FAST2SMS_API_KEY`
+* XGBoost Regressor
 
-### Development Mode
+Outputs:
 
-If you still need provider simulation locally, set:
+* Future PCI
+* Expected Violations
+* Peak Congestion Windows
+* Resource Recommendations
 
-`PARKSENSE_ALLOW_SIMULATION_PROVIDERS=true`
+---
 
-In production, keep that value `false` so misconfiguration fails loudly instead of silently simulating delivery.
+## 🗺️ Hotspot Detection
 
-## Deployment Notes
+Identify parking congestion clusters across the city.
 
-- Frontend reads `VITE_API_BASE_URL`
-- Backend reads `PARKSENSE_CORS_ORIGINS`
-- Backend production image uses `backend/requirements-prod.txt`
-- Twilio calls are supported for officer call workflows
-- SMS can use Twilio, MSG91, or Fast2SMS
+Technique:
+
+* DBSCAN Clustering
+
+Outputs:
+
+* Critical Hotspots
+* Medium Pressure Zones
+* Emerging Congestion Areas
+
+Benefits:
+
+* Patrol Optimization
+* Resource Planning
+* High-Risk Corridor Identification
+
+---
+
+## 🚨 Anomaly Detection
+
+Detect abnormal congestion behavior that deviates from city-wide patterns.
+
+Model:
+
+* Isolation Forest
+
+Examples:
+
+* Sudden Violation Surges
+* Event-Based Congestion
+* Unusual Parking Activity
+* Unexpected Traffic Pressure
+
+---
+
+## 👮 Enforcement Command Center
+
+Centralized incident management and field coordination platform.
+
+Features:
+
+* Alert Management
+* Officer Assignment
+* Dispatch Coordination
+* Resolution Tracking
+* Incident Lifecycle Monitoring
+* Communication Status Tracking
+
+---
+
+## 📱 SMS Notification Workflow
+
+Vehicle owners can receive enforcement notifications through SMS.
+
+Workflow:
+
+Alert Generated
+→ Incident Context Created
+→ Notification Payload Built
+→ SMS Provider
+→ Delivery Status Logged
+
+---
+
+## ☎️ Voice Call Escalation
+
+Critical incidents can be escalated through voice-call workflows.
+
+Workflow:
+
+Critical Alert
+→ Voice Prompt Generation
+→ Telephony Provider
+→ Vehicle Owner Contact
+→ Status Tracking
+
+---
+
+## 🤖 AI Copilot
+
+Natural-language congestion intelligence assistant powered by Groq LLMs.
+
+Example Queries:
+
+* Which locations currently exhibit the highest congestion risk?
+* Which roads require immediate intervention?
+* Why is KR Market experiencing elevated PCI?
+* Where should enforcement units be deployed?
+
+The Copilot enables operational teams to access intelligence without navigating multiple dashboards.
+
+---
+
+# 📸 Platform Screenshots
+
+## 🏙️ AI Command Center
+
+Real-time operational overview combining city health metrics, violations, PCI analytics, live detections, and AI recommendations.
+
+<p align="center">
+  <img src="screenshots/command-center.png" width="100%">
+</p>
+
+---
+
+## 🤖 AI Copilot
+
+Natural-language congestion intelligence interface for rapid operational decision support.
+
+<p align="center">
+  <img src="screenshots/copilot.png" width="100%">
+</p>
+
+---
+
+## 🗺️ Live Parking Intelligence Map
+
+City-wide geospatial visualization of parking hotspots and congestion clusters.
+
+<p align="center">
+  <img src="screenshots/live-map.png" width="100%">
+</p>
+
+---
+
+## 🔮 Congestion Forecasting Engine
+
+Multi-horizon congestion forecasting powered by machine learning.
+
+<p align="center">
+  <img src="screenshots/forecasting.png" width="100%">
+</p>
+
+---
+
+## 📍 Location-Specific Forecasts
+
+Road-level PCI forecasting and deployment recommendations.
+
+<p align="center">
+  <img src="screenshots/location-forecasts.png" width="100%">
+</p>
+
+---
+
+## 👮 Enforcement Command Center
+
+Alert management, dispatch operations, officer tracking, and incident resolution.
+
+<p align="center">
+  <img src="screenshots/enforcement.png" width="100%">
+</p>
+
+---
+
+## 📊 Analytics & Reporting
+
+Comprehensive performance metrics and enforcement effectiveness analysis.
+
+<p align="center">
+  <img src="screenshots/analytics.png" width="100%">
+</p>
+
+---
+
+# 🤖 Machine Learning Stack
+
+| Component              | Technique                 |
+| ---------------------- | ------------------------- |
+| Congestion Forecasting | XGBoost                   |
+| Hotspot Detection      | DBSCAN                    |
+| Anomaly Detection      | Isolation Forest          |
+| AI Copilot             | Groq LLM                  |
+| Dispatch Engine        | Distance-Based Matching   |
+| PCI Engine             | Custom Congestion Scoring |
+
+---
+
+# ⚙️ Technology Stack
+
+## Frontend
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* React Query
+* Leaflet
+
+## Backend
+
+* FastAPI
+* Python
+* Pydantic
+
+## Machine Learning
+
+* Scikit-Learn
+* XGBoost
+* Pandas
+* NumPy
+* Isolation Forest
+* DBSCAN
+
+## AI Layer
+
+* Groq API
+* Llama Models
+
+## Communication
+
+* SMS Integration
+* Voice Call Integration
+* IVR Workflows
+
+## Deployment
+
+* Vercel
+* FastAPI Server
+
+---
+
+# 📂 Project Structure
+
+```text
+ParkSense-AI
+│
+├── frontend
+│   ├── src
+│   ├── components
+│   └── services
+│
+├── backend
+│   ├── app
+│   │   ├── api
+│   │   ├── services
+│   │   ├── models
+│   │   ├── core
+│   │   └── ml
+│   │
+│   ├── tests
+│   └── data
+│
+├── screenshots
+│
+└── README.md
+```
+
+---
+
+# 📈 Impact
+
+ParkSense shifts parking enforcement from a reactive process to a predictive intelligence workflow.
+
+Expected Benefits:
+
+✅ Faster Incident Response
+
+✅ Better Officer Utilization
+
+✅ Reduced Congestion Formation
+
+✅ Improved Enforcement Effectiveness
+
+✅ Data-Driven Resource Allocation
+
+✅ Smarter Urban Mobility Management
+
+---
+
+# 🔭 Future Scope
+
+* ANPR Integration
+* CCTV Stream Analytics
+* Multi-City Deployments
+* Edge AI Inference
+* Citizen Mobile Application
+* Dynamic Route Optimization
+* Reinforcement Learning Dispatch
+* Digital Twin Simulation
+
+---
+
+# 👥 Team CVGirlie
+
+### Mehar Kapoor
+
+Project Lead | AI Systems | Backend Engineering
+
+Built for predictive congestion management, intelligent enforcement, and next-generation smart city operations.
