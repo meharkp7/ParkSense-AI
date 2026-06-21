@@ -1,210 +1,239 @@
 """
-Time-based Forecasting API
-Predicts congestion for next 1hr, 3hr, 6hr, tomorrow
+Machine-learning-based forecasting API.
+
+Uses trained XGBoost models
+to predict future PCI values
+from temporal and road features.
 """
 from fastapi import APIRouter
 from datetime import datetime, timedelta
 import math
-import random
 
+from app.services.forecast_service import (
+    ForecastService
+)
 from app.core.data_loader import load_pci
-
 router = APIRouter()
 
+
+def _safe_float(value, fallback: float) -> float:
+    try:
+        v = float(value)
+        return fallback if math.isnan(v) else v
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _risk(pci: float) -> dict:
+    if pci >= 0.80:
+        return {"level": "CRITICAL", "color": "red"}
+    if pci >= 0.65:
+        return {"level": "HIGH", "color": "orange"}
+    if pci >= 0.45:
+        return {"level": "MEDIUM", "color": "yellow"}
+    return {"level": "LOW", "color": "green"}
 
 @router.get("/forecast/timeline")
 async def get_forecast_timeline():
     """
-    Get time-based forecasts: next 1hr, 3hr, 6hr, tomorrow
+    Get time-based forecasts: next 1hr, 3hr, 6hr, tomorrow.
+    All values come from real dataset hourly averages.
     """
-    current_time = datetime.now()
-    
-    def to_python_float(value, fallback):
-        try:
-            numeric = float(value)
-        except (
-            TypeError,
-            ValueError,
-        ):
-            return fallback
+    now = datetime.now()
+    ch = now.hour
 
-        if math.isnan(numeric):
-            return fallback
+    next_1hr = (
+        ForecastService.predict_pci(
+            (ch + 1) % 24
+        )
+    )
 
-        return numeric
+    next_3hr = (
+        ForecastService.predict_pci(
+            (ch + 3) % 24
+        )
+    )
 
-    # Load actual data
-    try:
-        df = load_pci()
-        current_hour = current_time.hour
-        
-        # Get average PCI for different time windows
-        next_1hr = df[df['hour'] == (current_hour + 1) % 24]['pci'].mean()
-        next_3hr = df[df['hour'] == (current_hour + 3) % 24]['pci'].mean()
-        next_6hr = df[df['hour'] == (current_hour + 6) % 24]['pci'].mean()
-        
-        # Tomorrow same time
-        tomorrow_pci = df[df['hour'] == current_hour]['pci'].mean()
-        
-    except:
-        # Fallback to simulation
-        next_1hr = random.uniform(0.55, 0.75)
-        next_3hr = random.uniform(0.60, 0.80)
-        next_6hr = random.uniform(0.50, 0.70)
-        tomorrow_pci = random.uniform(0.55, 0.75)
+    next_6hr = (
+        ForecastService.predict_pci(
+            (ch + 6) % 24
+        )
+    )
 
-    next_1hr = to_python_float(
-        next_1hr,
-        0.65,
+    tomorrow_dt = (
+        now + timedelta(days=1)
     )
-    next_3hr = to_python_float(
-        next_3hr,
-        0.70,
+
+    tomorrow = (
+        ForecastService.predict_pci(
+            ch,
+            target_datetime=
+                tomorrow_dt,
+        )
     )
-    next_6hr = to_python_float(
-        next_6hr,
-        0.60,
-    )
-    tomorrow_pci = to_python_float(
-        tomorrow_pci,
-        0.65,
-    )
-    
-    def get_risk_level(pci):
+
+    def _rec(pci: float, hours_ahead: int) -> str:
         if pci >= 0.80:
-            return {"level": "CRITICAL", "color": "red"}
-        elif pci >= 0.65:
-            return {"level": "HIGH", "color": "orange"}
-        elif pci >= 0.45:
-            return {"level": "MEDIUM", "color": "yellow"}
-        else:
-            return {"level": "LOW", "color": "green"}
-    
+            return f"Deploy additional enforcement units — critical congestion expected."
+        if pci >= 0.65:
+            return f"Increase patrol density in high-PCI zones."
+        if hours_ahead == 1:
+            return "Monitor hotspots; current patterns stable."
+        return "Normal patrol patterns sufficient."
+
     return {
-        "current_time": current_time.isoformat(),
+        "current_time": now.isoformat(),
         "forecasts": [
             {
                 "timeframe": "Next 1 Hour",
-                "time": (current_time + timedelta(hours=1)).strftime("%I:%M %p"),
-                "pci": round(float(next_1hr), 2),
-                "risk": get_risk_level(next_1hr),
+                "time": (now + timedelta(hours=1)).strftime("%I:%M %p"),
+                "pci": round(next_1hr, 3),
+                "risk": _risk(next_1hr),
                 "expected_violations": int(next_1hr * 150),
-                "recommendation": "Deploy 2 additional units to MG Road area",
+                "recommendation": _rec(next_1hr, 1),
             },
             {
                 "timeframe": "Next 3 Hours",
-                "time": (current_time + timedelta(hours=3)).strftime("%I:%M %p"),
-                "pci": round(float(next_3hr), 2),
-                "risk": get_risk_level(next_3hr),
+                "time": (now + timedelta(hours=3)).strftime("%I:%M %p"),
+                "pci": round(next_3hr, 3),
+                "risk": _risk(next_3hr),
                 "expected_violations": int(next_3hr * 180),
-                "recommendation": "Prepare for evening rush hour congestion",
+                "recommendation": _rec(next_3hr, 3),
             },
             {
                 "timeframe": "Next 6 Hours",
-                "time": (current_time + timedelta(hours=6)).strftime("%I:%M %p"),
-                "pci": round(float(next_6hr), 2),
-                "risk": get_risk_level(next_6hr),
+                "time": (now + timedelta(hours=6)).strftime("%I:%M %p"),
+                "pci": round(next_6hr, 3),
+                "risk": _risk(next_6hr),
                 "expected_violations": int(next_6hr * 120),
-                "recommendation": "Normal patrol patterns sufficient",
+                "recommendation": _rec(next_6hr, 6),
             },
             {
                 "timeframe": "Tomorrow Same Time",
-                "time": (current_time + timedelta(days=1)).strftime("%a, %I:%M %p"),
-                "pci": round(float(tomorrow_pci), 2),
-                "risk": get_risk_level(tomorrow_pci),
-                "expected_violations": int(tomorrow_pci * 160),
-                "recommendation": "Plan officer schedules for high-risk zones",
+                "time": (now + timedelta(days=1)).strftime("%a, %I:%M %p"),
+                "pci": round(tomorrow, 3),
+                "risk": _risk(tomorrow),
+                "expected_violations": int(tomorrow * 160),
+                "recommendation": _rec(tomorrow, 24),
             },
-        ]
+        ],
     }
 
 
 @router.get("/forecast/locations")
 async def get_location_forecasts():
     """
-    Get forecasts for top locations
+    Top-5 highest-PCI locations with per-location hourly forecasts.
+    Derived entirely from real data — no hardcoded values.
     """
-    locations = [
-        {
-            "location": "MG Road Junction",
-            "current_pci": 0.82,
-            "forecast_1hr": 0.87,
-            "forecast_3hr": 0.75,
-            "trend": "increasing",
-            "peak_time": "6:00 PM - 8:00 PM",
-            "recommended_units": 4
-        },
-        {
-            "location": "Indiranagar Main",
-            "current_pci": 0.68,
-            "forecast_1hr": 0.72,
-            "forecast_3hr": 0.65,
-            "trend": "stable",
-            "peak_time": "7:00 PM - 9:00 PM",
-            "recommended_units": 3
-        },
-        {
-            "location": "Koramangala 80ft Road",
-            "current_pci": 0.71,
-            "forecast_1hr": 0.65,
-            "forecast_3hr": 0.58,
-            "trend": "decreasing",
-            "peak_time": "5:00 PM - 7:00 PM",
-            "recommended_units": 2
-        },
-        {
-            "location": "Whitefield Main Road",
-            "current_pci": 0.55,
-            "forecast_1hr": 0.68,
-            "forecast_3hr": 0.78,
-            "trend": "increasing",
-            "peak_time": "8:00 AM - 10:00 AM",
-            "recommended_units": 3
-        },
-        {
-            "location": "KR Market",
-            "current_pci": 0.89,
-            "forecast_1hr": 0.92,
-            "forecast_3hr": 0.85,
-            "trend": "critical",
-            "peak_time": "12:00 PM - 2:00 PM",
-            "recommended_units": 5
-        },
-    ]
-    
+    df = load_pci()
+    now = datetime.now()
+    ch = now.hour
+
+    # Top 5 locations by overall mean PCI
+    top5 = (
+        df.groupby("location", observed=True)["pci"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(5)
+        .reset_index()
+    )
+
+    locations = []
+    for _, row in top5.iterrows():
+        loc = str(row["location"])
+        loc_df = df[df["location"] == loc]
+
+        current_pci = _safe_float(
+            loc_df[loc_df["hour"] == ch]["pci"].mean(), float(row["pci"])
+        )
+        criticality = min(
+            1.0,
+            float(
+                current_pci
+            )
+        )
+
+        forecast_1hr = (
+            ForecastService.predict_pci(
+                (ch + 1) % 24,
+                criticality
+            )
+        )
+
+        forecast_3hr = (
+            ForecastService.predict_pci(
+                (ch + 3) % 24,
+                criticality
+            )
+        )
+
+        # Determine trend
+        delta = forecast_1hr - current_pci
+        trend = "critical" if current_pci >= 0.90 else (
+            "increasing" if delta > 0.02 else
+            "decreasing" if delta < -0.02 else "stable"
+        )
+
+        # Peak hour: the hour with highest mean PCI for this location
+        hourly_means = loc_df.groupby("hour", observed=True)["pci"].mean()
+        peak_hour = int(hourly_means.idxmax())
+        peak_label = f"{peak_hour:02d}:00 – {(peak_hour+2)%24:02d}:00"
+
+        recommended_units = max(1, int(current_pci * 6))
+
+        locations.append({
+            "location": loc,
+            "current_pci": round(current_pci, 3),
+            "forecast_1hr": round(forecast_1hr, 3),
+            "forecast_3hr": round(forecast_3hr, 3),
+            "trend": trend,
+            "peak_time": peak_label,
+            "recommended_units": recommended_units,
+        })
+
     return {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": now.isoformat(),
         "locations": locations,
-        "total_locations": len(locations)
+        "total_locations": len(locations),
     }
 
 
 @router.get("/forecast/hourly")
 async def get_hourly_forecast():
     """
-    Get 24-hour forecast
+    24-hour forecast using real hour-of-day averages from the dataset.
+    No random values.
     """
-    current_hour = datetime.now().hour
-    
+    now = datetime.now()
+    ch = now.hour
+
     hourly_data = []
     for i in range(24):
-        hour = (current_hour + i) % 24
-        # Simulate congestion patterns
-        if 8 <= hour <= 10 or 17 <= hour <= 20:
-            pci = random.uniform(0.70, 0.90)  # Peak hours
-        elif 12 <= hour <= 14:
-            pci = random.uniform(0.60, 0.75)  # Lunch time
-        else:
-            pci = random.uniform(0.30, 0.55)  # Off-peak
-            
+        hour = (
+            ch + i
+        ) % 24
+
+        pci = (
+            ForecastService
+            .predict_pci(hour)
+        )
+
         hourly_data.append({
-            "hour": f"{hour:02d}:00",
-            "pci": round(pci, 2),
-            "violations": int(pci * 100),
-            "risk": "HIGH" if pci > 0.70 else "MEDIUM" if pci > 0.50 else "LOW"
+            "hour":
+                f"{hour:02d}:00",
+
+            "pci":
+                round(pci, 3),
+
+            "violations":
+                int(pci * 100),
+
+            "risk":
+                _risk(pci)["level"]
         })
-    
+
     return {
-        "forecast_date": datetime.now().date().isoformat(),
-        "hourly_forecast": hourly_data
+        "forecast_date": now.date().isoformat(),
+        "hourly_forecast": hourly_data,
     }
