@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Officer Kumar",
+    "lat": 12.975,
+    "lon": 77.605,
+    "available": false,
+    "cases": 3,
+    "phone": "+919999999991"
+  },
+  {
+    "id": 2,
+    "name": "Officer Sharma",
+    "lat": 12.971,
+    "lon": 77.641,
+    "available": true,
+    "cases": 1,
+    "phone": "+919999999992"
+  },
+  {
+    "id": 3,
+    "name": "Officer Patel",
+    "lat": 12.935,
+    "lon": 77.614,
+    "available": true,
+    "cases": 1,
+    "phone": "+919999999993"
+  },
+  {
+    "id": 4,
+    "name": "Officer Singh",
+    "lat": 12.991,
+    "lon": 77.571,
+    "available": true,
+    "cases": 2,
+    "phone": "+919999999994"
+  }
+]
